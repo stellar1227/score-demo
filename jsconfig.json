@@ -1,0 +1,15 @@
+//jsconfig.json - js project setting
+//project에 포함할 파일, 제외할 파일, 컴파일 옵션 등 설정 
+//위치는 root 
+{
+  "compilerOptions": { //컴파일 옵션 
+    "baseUrl": ".", //project 절대경로 설정
+    "paths": { //baseURL기준으로 파일을 불러올때 기준점 설정 
+      "@/*": ["src/*"]
+    },
+    "sourceMap": true,
+    "jsx": "preserve"
+  },
+  "include": ["src/**/*"], // project내에 포함할 파일 설정 디폴트는 모든 파일 포함
+  "exclude": ["node_modules", "dist"] // project내에서 제외할 파일명 지정
+}
