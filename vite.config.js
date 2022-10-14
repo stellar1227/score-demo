@@ -10,7 +10,9 @@ export default defineConfig({
     vuetify({ autoImport: true }),
   ],
   resolve: { //entries options
-    '@': fileURLToPath(new URL('./src', import.meta.url)),
+    alias : {
+      '@' : fileURLToPath(new URL('./src', import.meta.url)),
+    }
   },
   server: { //server options : default localhost
     port: '3000', 
