@@ -2,5 +2,9 @@
 import IntroPage from '@/pages/IntroPage.vue';
 </script>
 <template>
-  <IntroPage />
+  <Vapp>
+    <Vmain>
+      <IntroPage />
+    </Vmain>
+  </Vapp>
 </template>
