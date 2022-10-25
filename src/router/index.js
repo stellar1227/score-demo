@@ -1,19 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Intro from '@/pages/IntroPage.vue';
-import NotFound from '@pages/NotFound.vue';
+import NotFound from '@/pages/NotFound.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/',
-      name: 'Intro',
-      redirect: '/Intro',
-      component: Intro,
+      name: 'Home',
+      redirect: '/Game'
     },
+    // {
+    //   path: '/Intro',
+    //   name: 'Intro',
+    //   component: () => import('@/pages/IntroPage.vue'),
+    // },
     {
       path: '/Game',
-      name: 'GameList',
+      name: 'Game',
       component: () => import('@/pages/ScoreLayout.vue'),
     },
     { path: '/:path(.*)', component: NotFound },

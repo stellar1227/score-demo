@@ -1,10 +1,6 @@
 <script setup>
-import IntroPage from '@/pages/IntroPage.vue';
+import TheLayout from '@/pages/TheLayout.vue'
 </script>
 <template>
-  <Vapp>
-    <Vmain>
-      <IntroPage />
-    </Vmain>
-  </Vapp>
+  <TheLayout /> 
 </template>
