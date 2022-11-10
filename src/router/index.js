@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import NotFound from '@/pages/NotFound.vue';
+import Intro from '@/pages/IntroPage.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -7,13 +8,13 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      redirect: '/Game'
+      redirect: '/IntroPage'
     },
-    // {
-    //   path: '/Intro',
-    //   name: 'Intro',
-    //   component: () => import('@/pages/IntroPage.vue'),
-    // },
+    {
+      path: '/Intro',
+      name: 'Intro',
+      component: Intro,
+    },
     {
       path: '/Game',
       name: 'Game',
