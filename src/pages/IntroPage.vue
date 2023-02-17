@@ -5,6 +5,8 @@
 import {ref} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Dialog from '@/components/Dialog.vue';
+import axios from 'axios';
+
 
 const router = useRouter();
 
@@ -14,49 +16,27 @@ const selectedClub = ref();
 const selectedGame = ref();
 
 
-const clubLists = ref([
-    {
-        id : 101,
-        name : '성수동클럽',
-        info : '성수동'
-    },
-    {
-        id : 102,
-        name : '제주시클럽',
-        info : '제주시'
-    },
-    {
-        id : 103,
-        name : '서귀포시클럽',
-        info : '서귀포'
-    }
-])
+const clubLists = ref([]);
 
-const userLists = ref([
-    {
-        id : 10101,
-        name : '이브라',
-        info : '중급다이버',
-        clubInfo : {
-            id : 101,
-            name : '성수동클럽',
-            info : '성수동'
-        }
-    },
-    {
-        id : 10103,
-        name : '미징징',
-        info : '초급다이버',
-        clubInfo : {
-            id : 103,
-            name : '서귀포시클럽',
-            info : '서귀포'
-        }
-    },
-])
+const newClubInfo = ref({
+    cname: '',
+    ctype: [],
+    cnote: ''
+});
+const newUserInfo = ref({
+    pname: '',
+    ptype: '',
+    psex: '',
+    pphone: '',
+    pnote: ''
+});
 
-//gameList조회 
-const gameLists = [
+
+//TODO: 전체 유저정보는 조회 필요없음. 유저정보 등록 시 같은경우 서버에서 처리 필 
+const userLists = ref([]);
+
+//TODO :gameList조회 /해당날짜의 게임조회 필요함 api 필요 
+const gameLists = [ // 응답 파라미터 예시 게임은 아이딧값으로 조회하고싶다.
     {
         id : 1,
         date : '2022-11-11',
@@ -70,13 +50,58 @@ const gameLists = [
 
 ]
 
+function getClubList(){
+    this.userAddModal = true
+    //클럽목록 조회는 유저등록시에
+    axios({
+            method : 'get',
+            url : 'http://scorebook.com/api/getclublist',
+    }).then((res) => {
+        clubLists.value = res.data;
+    })
+
+}
+
+/** 추후 saveModal HOC로 할수도. */
 function clubSaveHandler(){
-    alert('axios로 저장보내기 결과에 따라 동일클럽이름 확인');
+    const data = {
+        action : 'ADD',
+        target : 'club',
+        cname : newClubInfo.value.cname,
+        ctype : newClubInfo.value.ctype,
+        cnote : newClubInfo.value.cnote
+    }
+
+    const url = 'http://scorebook.com/api/addclub';
+    axios({
+        method : 'post',
+        url : url,
+        data : JSON.stringify(data),
+    }).then((res) => {
+        console.log(res); // Todo: alert메시지 분류해서 내보내기
+    })
     clubAddModal.value = false;
 }
 
 function userSaveHandler(){
-    alert('axios로 저장보내기 결과에 따라 동일사용자 확인');
+    const data = {
+        action: "ADD",
+        target: "fencer",
+        pname: newUserInfo.value.pname,
+        ptype: newUserInfo.value.ptype,
+        psex: newUserInfo.value.psex,
+        cid: selectedClub.value,
+        pphone: newUserInfo.value.pphone,
+        pnote: newUserInfo.value.pnote
+    }
+
+    axios({
+        method : 'post',
+        url : 'http://scorebook.com/api/addfencer',
+        data : JSON.stringify(data),
+    }).then((res) => {
+        alert(res.data.message.KR);
+    })
     userAddModal.value = false;
 }
 
@@ -105,8 +130,25 @@ function loadGameHandler(){
             @click="clubAddModal = true">Club Add</VBtn>
             <Dialog v-model="clubAddModal" title="클럽추가" sub-title="클럽등록하기">
                 <template #contents>
-                    <VTextField label="클럽명" variant="outlined"></VTextField>
-                    <VTextField label="클럽정보" variant="outlined"></VTextField>
+                    <VTextField v-model="newClubInfo.cname" label="클럽명" variant="outlined"></VTextField>
+                    <div class="game-type-list">
+                        <VCheckbox
+                        v-model="newClubInfo.ctype"
+                        label="epee"
+                        value="epee"
+                        ></VCheckbox>
+                        <VCheckbox
+                        v-model="newClubInfo.ctype"
+                        label="foil"
+                        value="foil"
+                        ></VCheckbox>
+                        <VCheckbox
+                        v-model="newClubInfo.ctype"
+                        label="sabre"
+                        value="sabre"
+                        ></VCheckbox>
+                    </div>
+                    <VTextField v-model="newClubInfo.cnote" label="기타메모사항" variant="outlined"></VTextField>
                 </template>
                 <template #actions>
                     <VBtn color="primary" variant="tonal" @click="clubSaveHandler">저장</VBtn>
@@ -120,12 +162,47 @@ function loadGameHandler(){
             color="blue"
             size="large"
             variant="tonal"
-            @click="userAddModal = true">User Add</VBtn>
+            @click="getClubList()">User Add</VBtn>
             <Dialog v-model="userAddModal" title="사용자추가" sub-title="사용자등록하기">
                 <template #contents>
-                    <VSelect v-model="selectedClub" :items="clubLists" item-title="name" item-value="id" label="소속클럽" variant="outlined"></VSelect>
-                    <VTextField label="사용자명" variant="outlined"></VTextField>
-                    <VTextField label="사용자정보" variant="outlined"></VTextField>
+                    <VSelect v-model="selectedClub" :items="clubLists" item-title="cname" item-value="cid" label="소속클럽" variant="outlined"></VSelect>
+                    <VTextField v-model="newUserInfo.pname" label="사용자명" variant="outlined"></VTextField>
+                    <div class="game-type-list">
+                        <VRadioGroup
+                        v-model="newUserInfo.ptype"
+                        column
+                        >
+                        <VRadio
+                            label="epee"
+                            value="epee"
+                        ></VRadio>
+                        <VRadio
+                            label="foil"
+                            value="foil"
+                        ></VRadio>
+                        <VRadio
+                            label="sabre"
+                            value="sabre"
+                        ></VRadio>
+                        </VRadioGroup>
+                    </div>
+                    <div class="game-type-list">
+                        <VRadioGroup
+                        v-model="newUserInfo.psex"
+                        column
+                        >
+                        <VRadio
+                            label="남"
+                            value="male"
+                        ></VRadio>
+                        <VRadio
+                            label="여"
+                            value="female"
+                        ></VRadio>
+                        </VRadioGroup>
+                    </div>
+                    <VTextField v-model="newUserInfo.pphone" label="전화번호" variant="outlined"></VTextField>
+                    <VTextField v-model="newUserInfo.pnote" label="사용자정보" variant="outlined"></VTextField>
                 </template>
                 <template #actions>
                     <VBtn color="primary" variant="tonal" @click="userSaveHandler">저장</VBtn>
@@ -153,7 +230,6 @@ function loadGameHandler(){
         </VCol>
     </VRow>
 </VCard>
-
 </template>
 <style lang="scss" scoped>
 .v-card{
@@ -163,5 +239,14 @@ function loadGameHandler(){
     transform: translate(-50%,-50%);
     min-width: 50%;
     max-width: 80%;
+}
+.game-type-list{
+    display:flex;
+    .v-input{
+        flex:auto;
+    }
+    &::v-deep(.v-selection-control-group){
+        flex-direction:row;
+    }
 }
 </style>
