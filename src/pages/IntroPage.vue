@@ -38,15 +38,9 @@ const userLists = ref([]);
 //TODO :gameList조회 /해당날짜의 게임조회 필요함 api 필요 
 const gameLists = [ // 응답 파라미터 예시 게임은 아이딧값으로 조회하고싶다.
     {
-        id : 1,
-        date : '2022-11-11',
-        time : '23:10',
-    },
-    {
-        id : 2,
-        date : '2022-11-13',
-        time : '23:10',
-    },
+        sheet : 'eoif274834',
+        date: '2023-02-13'
+    }
 
 ]
 
@@ -110,7 +104,8 @@ function newGameHanlder(){
 }
 
 function loadGameHandler(){
-    //gameLists model로 조회
+    if(!selectedGame.value){alert('select a game'); return;}
+    router.push({ path: '/Game/Detail', query : { gameId :selectedGame.value }});
 }
 
 </script>
@@ -221,7 +216,7 @@ function loadGameHandler(){
     </VRow>
     <VRow justify="center" class="mb-4" v-if="gameLists">
         <VCol class="d-flex">
-            <VSelect v-model="selectedGame" :items="gameLists" item-title="date" item-value="id" variant="outlined" density="compact" hide-details="auto" class="mr-4">Game List</VSelect>
+            <VSelect v-model="selectedGame" :items="gameLists" item-title="date" item-value="sheet" variant="outlined" density="compact" hide-details="auto" class="mr-4">Game List</VSelect>
             <VBtn
             color="blue"
             size="large"

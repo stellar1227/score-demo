@@ -2,8 +2,13 @@
 //select component => 날짜 불러오기 , 선택해서 컴포넌트 테이블에 넘기기
 //GameList + queryString router 설정 
 //
-import {ref} from 'vue';
+import {ref, onMounted} from 'vue';
 import axios from 'axios';
+import { useRoute, useRouter } from 'vue-router';
+
+
+
+const route = useRoute();
 const gameListValue = ref();
 const gameList = ref([ // game회차는 하루에 1개로 가정 - 이 데이터는 서버에서 초기에 호출해서 불러옴 // 추후에 store에서 관리 
     {
@@ -48,56 +53,9 @@ function reqUserList(){
         console.log('data',res)
         clubMemberList.value = res.data;
     })
-   
-    
-
-//alert('axios로 selectedClub.value 조회하여  소속 유저 불러옴')
-    // clubMemberList.value = [ //TODO : 유저를 이렇게 이용하려면, 유저정보가 가진 게임 정보 처리와, 소속 클럽아이디도 있어야하지않을까.
-    //     {
-    //         pid : '3',
-    //         pname : '유성원',
-    //         psex : 'M',
-    //         ptype: 'epee',
-    //         cname : '대전펜싱클럽',
-    //         pnote : ''
-    //     },
-    //     {
-    //         pid : '5',
-    //         pname : '이성원',
-    //         psex : 'M',
-    //         ptype: 'foil',
-    //         cname : '대전펜싱클럽',
-    //         pnote : ''
-    //     },
-    //     {
-    //         pid : '10',
-    //         pname : '유성투',
-    //         psex : 'M',
-    //         ptype: 'epee',
-    //         cname : '대전펜싱클럽',
-    //         pnote : ''
-    //     },
-    //     {
-    //         pid : '313',
-    //         pname : '무성원',
-    //         psex : 'M',
-    //         ptype: 'epee',
-    //         cname : '대전펜싱클럽',
-    //         pnote : ''
-    //     }
-    // ]
+ 
 }
 
-//dataset
-//1. player 정보 - user추가/삭제 시 axios 전송 (수정은 어쩔까)
-//2. gameList 정보 - game생성/추가/삭제 시 axios 전송 아래랑 묶어서
-//3. gameList에 해당하는 games - game 추가/수정/삭제 시 axios전송
-
-
-//scroeTable 구성 데이터 회차선택시 axios를 통해서 리퀘스트 받은 값을 넣음 
-// const userList = ref([
-//     'A', 'B', 'C', 
-// ])
 
 
 
@@ -106,79 +64,11 @@ function reqUserList(){
 // const userList = ref([]); //새 게임 생성시 초기값
 
 let gameId = 0; //초기 값 맨처음 받아올것 
-// const scoreTable = ref( 
-//     {
-//         gameListId : '#1',
-//         date : '2022-10-10', 
-//         games : [
-//             {
-//                 gameId : gameId++,
-//                 name : 'A',
-//                 score : [
-//                     {
-//                         name : 'A',
-//                         value : null,
-//                         isEditable : false,
-//                     },
-//                     {
-//                         name : 'B',
-//                         value : 1,
-//                         isEditable : false,
-//                     },
-//                     {
-//                         name : 'C',
-//                         value : 2,
-//                         isEditable : false,
-//                     }
-//                 ],
-//             },
-//             {
-//                 gameId : gameId++,
-//                 name : 'B',
-//                 score : [{
-//                         name : 'A',
-//                         value : 2,
-//                         isEditable : false,
-//                     },
-//                     {
-//                         name : 'B',
-//                         value : null,
-//                         isEditable : false,
-//                     },
-//                     {
-//                         name : 'C',
-//                         value : 4,
-//                         isEditable : false,
-//                     }],
-//             },
-//             {
-//                 gameId : gameId++,
-//                 name : 'C',
-//                 score : [{
-//                         name : 'A',
-//                         value : 0,
-//                         isEditable : false,
-//                     },
-//                     {
-//                         name : 'B',
-//                         value : 9,
-//                         isEditable : false,
-//                     },
-//                     {
-//                         name : 'C',
-//                         value : null,
-//                         isEditable : false,
-//                     }],
-//             }
-//         ]
-//     }
-// )
+
 
 const scoreTable = ref( //새 게임 생성시 초기값
     {
-        gameListId : '#1', // 이 부분도 동적
-        date : '2022-10-10', // 이 부분도 데이트 객체화
-        games : []
+        
     }
 )
 
@@ -217,34 +107,41 @@ function plusGameHanlder(){
     });
 }
 
-
 //게임 불러오기
 const gameData = ref({});
-const data = {
-    sheet : 'eoif274834'
-}
-axios({
-    method : 'post',
-    url : 'http://scorebook.com/api/getgameresult',
-    data : JSON.stringify(data)
-}).then((res) => {
-    scoreTable.value = res.data;
-    console.log(res.data)
-    //scoreTable을 중복된 플레이어 기준으로, 로우에 반복될수있도록 재가공필요 
-    const pidList = [...new Set(scoreTable.value.map(e => e.pid1))]; //동일 아이디를 뽑아서
-    userList.value = [...new Set(scoreTable.value.map(e => e.pname1))];//동일 인물 뽑아내기
-    scoreTable.value = pidList.map((e, i) => {
-        let arr = scoreTable.value.filter(id => id.pid1 == e);
-        arr.splice(i, 0, {'pid1' : e , 'pid2' : e});
-        return arr;
+
+const sheetNum = route.query.gameId;
+
+if(sheetNum){
+    const data = {
+        sheet : sheetNum
+    };
+
+    axios({
+        method : 'post',
+        url : 'http://scorebook.com/api/getgameresult',
+        data : JSON.stringify(data)
+    }).then((res) => {
+        scoreTable.value = res.data;
+        console.log(res.data)
+        //scoreTable을 중복된 플레이어 기준으로, 로우에 반복될수있도록 재가공필요 
+        const pidList = [...new Set(scoreTable.value.map(e => e.pid1))]; //동일 아이디를 뽑아서
+        userList.value = [...new Set(scoreTable.value.map(e => e.pname1))];//동일 인물 뽑아내기
+        scoreTable.value = pidList.map((e, i) => {
+            let arr = scoreTable.value.filter(id => id.pid1 == e);
+            arr.splice(i, 0, {'pid1' : e , 'pid2' : e});
+            return arr;
     });
     console.log(scoreTable.value)
     
 })
-//문제. 데이터 객체가 같은 객체 내에 동일하지 않아, 연동 불가. 
-//아이딧값으로 객체를 연동해줄필요가 있다.
+
+}
+
+
+
 function changeScore(item,col,row){
-    scoreTable.value[col][row].score2 = item.score1
+    scoreTable.value[col][row].score2 = item;
 }
 </script>
 <template>
@@ -313,7 +210,7 @@ function changeScore(item,col,row){
                                 <span class="me">나</span>
                             </template>
                             <template v-else>
-                                <input type="number" v-model="game.score1" @change="changeScore(game,num, idx)"/>
+                                <input type="number" v-model="game.score1" @change="changeScore(game.score1,num, idx)"/>
                                 <span :class="{'victory' : game.score1 > game.score2 }">{{ game.score1 > game.score2 ? 'V' : 'L' }}</span>
                             </template>
                             <!-- <input type="number" v-model="game.score1" /> -->

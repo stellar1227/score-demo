@@ -20,6 +20,12 @@ const router = createRouter({
       name: 'Game',
       component: () => import('@/pages/ScoreLayout.vue'),
     },
+    {
+      path: "/Game/Detail",
+      name: "GameDetail",
+      component: () => import('@/pages/ScoreLayout.vue'),
+      props: true
+    },
     { path: '/:path(.*)', component: NotFound },
   ],
 });
