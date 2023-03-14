@@ -229,15 +229,23 @@ axios({
     data : JSON.stringify(data)
 }).then((res) => {
     scoreTable.value = res.data;
-    
+    console.log(res.data)
     //scoreTable을 중복된 플레이어 기준으로, 로우에 반복될수있도록 재가공필요 
-    const pidList = [...new Set(scoreTable.value.map(e => e.pid1))];
-    userList.value = [...new Set(scoreTable.value.map(e => e.pname1))];
-    scoreTable.value = pidList.map(e => {
-        return scoreTable.value.filter(id => id.pid1 == e)
-    })
+    const pidList = [...new Set(scoreTable.value.map(e => e.pid1))]; //동일 아이디를 뽑아서
+    userList.value = [...new Set(scoreTable.value.map(e => e.pname1))];//동일 인물 뽑아내기
+    scoreTable.value = pidList.map((e, i) => {
+        let arr = scoreTable.value.filter(id => id.pid1 == e);
+        arr.splice(i, 0, {'pid1' : e , 'pid2' : e});
+        return arr;
+    });
+    console.log(scoreTable.value)
     
 })
+//문제. 데이터 객체가 같은 객체 내에 동일하지 않아, 연동 불가. 
+//아이딧값으로 객체를 연동해줄필요가 있다.
+function changeScore(item,col,row){
+    scoreTable.value[col][row].score2 = item.score1
+}
 </script>
 <template>
     <VRow>
@@ -270,7 +278,7 @@ axios({
         </VCol>
     </VRow>
     <VRow>
-        <VCol>
+        <VCol cols="2">
             <VList :items="userList" density="compact"></VList>
         </VCol>
         <VCol>
@@ -301,12 +309,12 @@ axios({
                     <tr v-for="(gameList, idx) in scoreTable">
                         <td>{{idx + 1}}</td>
                         <td v-for="(game, num) in gameList">
-                            <template v-if="idx === num">
-                                <span>나</span>
+                            <template v-if="game.pid1 === game.pid2">
+                                <span class="me">나</span>
                             </template>
                             <template v-else>
-                                {{  game.score1  }}
-                                <span>{{ game.score1 > game.score2 ? 'V' : 'L' }}</span>
+                                <input type="number" v-model="game.score1" @change="changeScore(game,num, idx)"/>
+                                <span :class="{'victory' : game.score1 > game.score2 }">{{ game.score1 > game.score2 ? 'V' : 'L' }}</span>
                             </template>
                             <!-- <input type="number" v-model="game.score1" /> -->
                             <!-- <span v-else @click="score.isEditable = score.value !== null ? true : false">{{score.value === null ? 'X' : score.value}}</span> -->
@@ -316,8 +324,8 @@ axios({
             </VTable>
         </VCol>
     </VRow>
-
-    {{ userList  }}
+    <!-- {{ scoreTable }}
+    {{ userList  }} -->
 </template>
 <style lang="scss">
 input[type="number"]::-webkit-outer-spin-button,
@@ -331,9 +339,17 @@ input[type="number"]{
 table{
     table-layout:fixed;
     td{
+        input{cursor:pointer};
         span{
             display: block;
-            cursor:pointer;
+            color:green;
+            &.victory{
+                color:red;
+            }
+            &.me{
+                color:black;
+                font-weight:bold;
+            }
         }
     }
 }
